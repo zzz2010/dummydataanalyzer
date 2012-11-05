@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import weka.core.Instances;
 import weka.core.converters.CSVLoader;
@@ -29,6 +31,15 @@ public class Tab2Arff {
 	        BufferedReader bReader = new BufferedReader(
 	                new FileReader(tabFile));
 			pw = new PrintWriter(new File(csvfile));
+			
+			HashMap<String,Integer> MissingValueStr=new HashMap<String,Integer>();
+			MissingValueStr.put("?",0);
+			MissingValueStr.put("NA",0);
+			MissingValueStr.put("na",0);
+			MissingValueStr.put("N/A",0);
+			MissingValueStr.put("n/a",0);
+			MissingValueStr.put("Missing",0);
+			MissingValueStr.put("missing",0);
 			
 			  String headerline=bReader.readLine();
 		        String catLine=bReader.readLine();
@@ -63,6 +74,12 @@ public class Tab2Arff {
 		        while ((line = bReader.readLine()) != null) {
 		 
 		        	pw.println(line.trim().replace("\t", ","));
+		        	String[] toks=line.trim().split("\t");
+		        	for(int i=0;i<toks.length;i++)
+		        	{
+		        		if(MissingValueStr.containsKey(toks[i]))
+		        			MissingValueStr.put(toks[i], MissingValueStr.get(toks[i]));
+		        	}
 		        }
 		        bReader.close();
 		        pw.close();
@@ -71,6 +88,22 @@ public class Tab2Arff {
 				 loader.setSource(new File(csvfile));
 				 loader.setNominalAttributes(N_str);
 				 loader.setStringAttributes(S_str);
+				 
+				 //missing values
+				 String placehoder="";
+				 int misscount=0;
+				 for(String temp : MissingValueStr.keySet())
+				 {
+					 int tmp=MissingValueStr.get(temp);
+					 if(tmp>misscount)
+					 {
+						 misscount=tmp;
+						 placehoder=temp;
+					 }
+				 }
+				 if(placehoder!="")
+					 loader.setMissingValue(placehoder);
+				 
 				  inst=loader.getDataSet();
 				 
 		} catch (Exception e) {
