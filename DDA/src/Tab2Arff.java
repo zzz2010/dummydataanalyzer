@@ -42,6 +42,7 @@ public class Tab2Arff {
 			MissingValueStr.put("missing",0);
 			
 			  String headerline=bReader.readLine();
+			 	pw.println(headerline);
 		        String catLine=bReader.readLine();
 		       String[] comps=catLine.split("\t");
 		       String C_str="1";
@@ -78,18 +79,18 @@ public class Tab2Arff {
 		        	for(int i=0;i<toks.length;i++)
 		        	{
 		        		if(MissingValueStr.containsKey(toks[i]))
-		        			MissingValueStr.put(toks[i], MissingValueStr.get(toks[i]));
+		        			MissingValueStr.put(toks[i], MissingValueStr.get(toks[i])+1);
 		        	}
 		        }
 		        bReader.close();
 		        pw.close();
 				 CSVLoader loader = new CSVLoader();
-				
-				 loader.setSource(new File(csvfile));
-				 loader.setNominalAttributes(N_str);
+				File csv=new File(csvfile);
+				 loader.setSource(csv);
+				 loader.setNominalAttributes(C_str);
 				 loader.setStringAttributes(S_str);
 				 
-				 //missing values
+				 //missing values, find the largest occurrence as missing value placeholder
 				 String placehoder="";
 				 int misscount=0;
 				 for(String temp : MissingValueStr.keySet())
@@ -104,8 +105,11 @@ public class Tab2Arff {
 				 if(placehoder!="")
 					 loader.setMissingValue(placehoder);
 				 
+				 //get dataset
 				  inst=loader.getDataSet();
-				 
+				  
+				  //delete tmp file
+				  csv.delete();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -129,6 +133,26 @@ public class Tab2Arff {
 			e.printStackTrace();
 		}
     
+		 
+	}
+	
+	public static Instances getInstanceNconvert(String tabFile)
+	{
+
+		 Instances dataSet = getInstances( tabFile);
+		 BufferedWriter writer;
+		try {
+			
+			writer = new BufferedWriter(new FileWriter(common.outputDir+(new File(tabFile)).getName()+".arff"));
+			 writer.write(dataSet.toString());
+			 writer.flush();
+			 writer.close();  
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    
+		return dataSet;
 		 
 	}
 }
