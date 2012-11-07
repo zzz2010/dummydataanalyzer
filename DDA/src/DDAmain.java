@@ -42,15 +42,21 @@ public class DDAmain {
 			
 		if(fileList==null)
 			return;
+		//loading data files
 		for (int i = 0; i < fileList.length; i++) {
 			String filename=inputdir+fileList[i];
+			//tab separate file
 			if(filename.endsWith("txt"))
 			{
 				Instances dataset=Tab2Arff.getInstanceNconvert(filename);
 				TablePool.put(fileList[i], dataset);
 			}
 		}
-			
+		
+		//apply single Feature Dummy
+		
+		
+		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
