@@ -19,15 +19,12 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 
-public class SingleFeatureDummy extends AbstractDummy{
+public class SingleFeatureDummy implements AbstractDummy{
 
-	public SingleFeatureDummy(List<Instances> datasets) {
-		super(datasets);
-		// TODO Auto-generated constructor stub
-	}
+
 
 	@Override
-	public List<DummyFinding> DigKnowledge() {
+	public List<DummyFinding> DigKnowledge(List<Instances> datasets) {
 		// TODO Auto-generated method stub
 		return null;
 	}

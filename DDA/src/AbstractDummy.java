@@ -3,14 +3,11 @@ import java.util.List;
 import weka.core.Instances;
 
 
-public abstract class AbstractDummy {
-	List<Instances> datasets;
-
-	public AbstractDummy(List<Instances> datasets) {
-		super();
-		this.datasets = datasets;
-	}
+public interface AbstractDummy {
 	
-	public abstract List<DummyFinding> DigKnowledge();
+
+
+	
+	public  List<DummyFinding> DigKnowledge(List<Instances> datasets);
 	
 }
