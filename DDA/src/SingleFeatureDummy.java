@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.math3.stat.correlation.SpearmansCorrelation;
@@ -17,6 +18,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
+import weka.filters.unsupervised.instance.RemoveWithValues;
 
 
 public class SingleFeatureDummy implements AbstractDummy{
@@ -26,19 +28,112 @@ public class SingleFeatureDummy implements AbstractDummy{
 	@Override
 	public List<DummyFinding> DigKnowledge(List<Instances> datasets) {
 		// TODO Auto-generated method stub
-		return null;
+		 List<DummyFinding> findings=new ArrayList<DummyFinding>();
+		 for (int i = 0; i < datasets.size(); i++) {
+			 List<DummyFinding> temp = processSingleTable(datasets.get(i));
+			 if(temp!=null)
+			 findings.addAll(temp);
+		}
+		 
+		 for (int i = 0; i < datasets.size()-1; i++) {
+			 for (int j = i+1; j < datasets.size(); j++) {
+				 List<DummyFinding> temp =processTwoTables(datasets.get(i),datasets.get(j));
+				 if(temp!=null)
+					 findings.addAll(temp);
+			}	 
+		 }
+		return findings;
 	}
+	
+	public List<DummyFinding> processTwoTables(Instances table1,Instances table2)
+	{
+		List<DummyFinding> result=new ArrayList<DummyFinding>();
+		//get common id
+		List<Instances> inputData=new ArrayList<Instances>();
+		inputData.add(table1);
+		inputData.add(table2);
+		List<Instances> filterData=common.getCommonInstances(inputData);
+		Instances first=filterData.get(0);
+		Instances second=filterData.get(1);
+		second.deleteAttributeAt(0);
+		Instances mergedDataSet = Instances.mergeInstances(first, second);
+		
+		Remove remove = new Remove();
+		remove.setInvertSelection(true);
+      for (int i = 1; i < first.numAttributes(); i++) {		
+			for (int j = first.numAttributes(); j < mergedDataSet.numAttributes(); j++) {			
+				try {
+					remove.setAttributeIndicesArray(new int[]{i,j});
+					remove.setInputFormat(mergedDataSet);
+					Instances newData = Filter.useFilter(mergedDataSet, remove);
+					boolean contanedNominal=(newData.attribute(0).isNominal()|newData.attribute(1).isNominal());
+					if(contanedNominal)
+					{
+						//go for classification 
+						Evaluation eval=doClassification(newData);
+						if(eval.areaUnderROC(0)>Criteria.AUC) //dummy, only look at classIndex=0
+						{
+							DummyFinding finding=new DummyFinding();
+							finding.confidence=eval.areaUnderROC(0);
+							finding.pvalue=0;
+							finding.support=newData.numInstances();
+							finding.FeatureName.add(mergedDataSet.attribute(i).name());
+							finding.FeatureName.add(mergedDataSet.attribute(j).name());
+							finding.DummyName=this.getClass().getName();
+							finding.description="J48 Classification";
+							finding.isCrossTable=true;
+							result.add(finding);
+						}
+					}
+					else
+					{
+						boolean bothNumerical=(newData.attribute(0).isNumeric()|newData.attribute(1).isNumeric());
+						if(bothNumerical)
+						{
+							//go for correlation
+							DummyFinding finding=doCorrelation( newData);
+							finding.isCrossTable=true;
+							if(finding.pvalue<Criteria.Pvalue&&finding.confidence>Criteria.Corr)
+							{
+								result.add(finding);
+							}
+						}
+						else
+						{
+							continue; 
+//							boolean bothString=(newData.attribute(0).isString()|newData.attribute(1).isString());
+//							if(bothString)
+//							{
+//								//go for string comparison
+//							}
+						}
+					}
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} // apply filter
+			}
+		}
+		return result;
+		 
+		
+	}
+	
+	
 
 	public List<DummyFinding> processSingleTable(Instances table)
 	{
 		List<DummyFinding> result=new ArrayList<DummyFinding>();
 		Remove remove = new Remove();
 		remove.setInvertSelection(true);
+		
 		for (int i = 1; i < table.numAttributes()-1; i++) {
 			
 			for (int j = i+1; j < table.numAttributes(); j++) {
 				remove.setAttributeIndicesArray(new int[]{i,j});
 				try {
+					remove.setInputFormat(table);
 					Instances newData = Filter.useFilter(table, remove);
 					boolean contanedNominal=(newData.attribute(0).isNominal()|newData.attribute(1).isNominal());
 					if(contanedNominal)
@@ -53,6 +148,8 @@ public class SingleFeatureDummy implements AbstractDummy{
 							finding.support=newData.numInstances();
 							finding.FeatureName.add(table.attribute(i).name());
 							finding.FeatureName.add(table.attribute(j).name());
+							finding.DummyName=this.getClass().getName();
+							finding.description="J48 Classification";
 							result.add(finding);
 						}
 					}
@@ -85,7 +182,7 @@ public class SingleFeatureDummy implements AbstractDummy{
 				} // apply filter
 			}
 		}
-		return null;
+		return result;
 	}
 	
 	static DummyFinding doCorrelation(Instances data)
@@ -105,6 +202,8 @@ public class SingleFeatureDummy implements AbstractDummy{
 		finding.pvalue=1-ttest.cdf(t);
 		finding.FeatureName.add(data.attribute(0).name());
 		finding.FeatureName.add(data.attribute(1).name());
+		finding.DummyName="SingleFeatureDummy";
+		finding.description="Spearman Correlation";
 		return finding;
 		
 	}

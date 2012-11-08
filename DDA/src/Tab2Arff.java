@@ -42,8 +42,8 @@ public class Tab2Arff {
 			MissingValueStr.put("missing",0);
 			
 			  String headerline=bReader.readLine();
-			 	pw.println(headerline);
-		        String catLine=bReader.readLine();
+			 	pw.println(headerline.trim().replace('\t', ','));//
+		        String catLine=bReader.readLine().trim();
 		       String[] comps=catLine.split("\t");
 		       String C_str="1";
 		       String N_str="";

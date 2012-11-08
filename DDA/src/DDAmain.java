@@ -1,6 +1,7 @@
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -10,6 +11,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import weka.core.Instances;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.RemoveUseless;
 
 
 public class DDAmain {
@@ -42,7 +45,7 @@ public class DDAmain {
 				formatter.printHelp( "DDAmain", options );
 				return;
 			}
-			
+		(new File(common.outputDir)).mkdirs();
 		if(fileList==null)
 			return;
 		//loading data files
@@ -52,15 +55,25 @@ public class DDAmain {
 			if(filename.endsWith("txt"))
 			{
 				Instances dataset=Tab2Arff.getInstanceNconvert(filename);
-				TableData.add(dataset);
+//				dataset.setClassIndex(0);//so skip remove
+				RemoveUseless_ignoreID remove=new RemoveUseless_ignoreID();
+				remove.setMaximumVariancePercentageAllowed(95);
+				remove.setInputFormat(dataset);
+				TableData.add(Filter.useFilter(dataset,remove));
 				TableNames.add(fileList[i]);
 			}
 		}
 		
 		//apply single Feature Dummy
 		MissingValueHandler mvHandler=new MissingValueHandler(new SingleFeatureDummy());
-		mvHandler.DigKnowledge(TableData);
 		
+		//apply shuffleVerifier
+		ShuffleVerifier verifier=new ShuffleVerifier(mvHandler);
+		List<DummyFinding> Findings = verifier.DigKnowledge(TableData);
+		for (DummyFinding dummyFinding : Findings) {
+			if(dummyFinding.isCrossTable)
+			System.out.println(dummyFinding.toString());
+		}
 		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
