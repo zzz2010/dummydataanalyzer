@@ -1,4 +1,5 @@
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.commons.cli.CommandLine;
@@ -24,7 +25,9 @@ public class DDAmain {
 		CommandLine cmd;
 		String[] fileList=null;
 		String inputdir="";
-		HashMap<String,Instances> TablePool=new HashMap<String, Instances>();
+		ArrayList<String> TableNames=new ArrayList<String>();
+		ArrayList<Instances> TableData=new ArrayList<Instances>();
+	
 		try {
 			cmd = parser.parse( options, args);
 			if(cmd.hasOption("i"))
@@ -49,12 +52,14 @@ public class DDAmain {
 			if(filename.endsWith("txt"))
 			{
 				Instances dataset=Tab2Arff.getInstanceNconvert(filename);
-				TablePool.put(fileList[i], dataset);
+				TableData.add(dataset);
+				TableNames.add(fileList[i]);
 			}
 		}
 		
 		//apply single Feature Dummy
-		
+		MissingValueHandler mvHandler=new MissingValueHandler(new SingleFeatureDummy());
+		mvHandler.DigKnowledge(TableData);
 		
 		
 		} catch (Exception e) {
