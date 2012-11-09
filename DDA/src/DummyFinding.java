@@ -10,6 +10,7 @@ public class DummyFinding {
 	HashSet<String> FeatureName;
 	String description;
 	String DummyName;
+	
 	public DummyFinding() {
 		FeatureName=new HashSet<String>();
 		support=0;
