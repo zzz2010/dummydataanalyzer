@@ -8,4 +8,5 @@ public abstract class DummyWrapper implements AbstractDummy {
 		this.workerDummy = workerDummy;
 	}
 	
+	
 }
