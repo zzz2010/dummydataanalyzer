@@ -10,6 +10,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import weka.clusterers.HierarchicalClusterer;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.RemoveUseless;
@@ -65,8 +66,8 @@ public class DDAmain {
 		}
 		
 		//apply single Feature Dummy
-		MissingValueHandler mvHandler=new MissingValueHandler(new SingleFeatureDummy());
-		
+//		MissingValueHandler mvHandler=new MissingValueHandler(new SingleFeatureDummy());
+		MissingValueHandler mvHandler=new MissingValueHandler(new HierarchicalClusteringDummy());
 		//apply shuffleVerifier
 		ShuffleVerifier verifier=new ShuffleVerifier(mvHandler);
 		List<DummyFinding> Findings = verifier.DigKnowledge(TableData);

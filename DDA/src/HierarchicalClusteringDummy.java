@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 import weka.clusterers.FilteredClusterer;
-import weka.clusterers.HierarchicalClusterer;
 import weka.core.ChebyshevDistance;
 import weka.core.DistanceFunction;
 import weka.core.EuclideanDistance;
@@ -71,7 +70,8 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 					clustering.setLinkType(LinkTypes.get(j));
 					filteredCluster.setClusterer(clustering);
 					filteredCluster.buildClusterer(first);
-					String clusterTree=filteredCluster.clustererTipText();
+					String clusterTree=clustering.graph();
+					System.out.println(clusterTree);
 				}
 			}
 			
