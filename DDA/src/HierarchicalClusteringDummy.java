@@ -1,12 +1,18 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import weka.classifiers.Evaluation;
+import weka.classifiers.trees.J48;
 import weka.clusterers.FilteredClusterer;
 import weka.core.ChebyshevDistance;
 import weka.core.DistanceFunction;
 import weka.core.EuclideanDistance;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.ManhattanDistance;
 import weka.core.SelectedTag;
+import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 
@@ -70,7 +76,7 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 					clustering.setLinkType(LinkTypes.get(j));
 					filteredCluster.setClusterer(clustering);
 					filteredCluster.buildClusterer(first);
-					String clusterTree=clustering.graph();
+					  List<Set<Integer>> clusterTree = clustering.listClusters(Criteria.minSupport);
 					System.out.println(clusterTree);
 				}
 			}
@@ -82,8 +88,48 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 		return result;
 	}
 	
-	public List<DummyFinding> ClusteringPredict()
+	public List<DummyFinding> ClusteringPredict(Set<String> IDs,Instances targetDatas)
 	{
-		return null;
+		List<DummyFinding> result=new ArrayList<DummyFinding>();
+		Instances inst_wLabel = new Instances(targetDatas);
+		inst_wLabel.setClassIndex(0);
+		for (int i = 0; i < inst_wLabel.numInstances(); i++) {
+			Instance inst = inst_wLabel.instance(i);
+			if(IDs.contains(inst.stringValue(0)))
+				inst.setValue(0, 1);
+			else
+				inst.setValue(0, 0);
+		}
+		Remove remove = new Remove();
+		remove.setInvertSelection(true);
+		for (int i = 1; i < inst_wLabel.numAttributes(); i++) {
+			remove.setAttributeIndicesArray(new int[]{0,i});
+			try {
+				remove.setInputFormat(inst_wLabel);
+				Instances newData = Filter.useFilter(inst_wLabel, remove);
+					J48 tree=new J48();
+					Evaluation eval=new Evaluation(newData);
+					tree.buildClassifier(newData);
+					eval.evaluateModel(tree, newData);
+					double tempauc=eval.areaUnderROC(0);
+					//parse finding object
+					if(tempauc>Criteria.AUC)
+					{
+						DummyFinding finding=new DummyFinding();
+						finding.confidence=tempauc;
+						finding.pvalue=0;
+						finding.support=IDs.size();
+						finding.FeatureName.addAll(IDs);
+						finding.DummyName=this.getClass().getName();
+						finding.description="J48 Classification";
+						result.add(finding);
+					}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		return result;
 	}
 }

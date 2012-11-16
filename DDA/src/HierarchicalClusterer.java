@@ -21,9 +21,13 @@
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Vector;
 
 import weka.clusterers.AbstractClusterer;
@@ -1108,9 +1112,68 @@ public class HierarchicalClusterer extends AbstractClusterer implements OptionHa
   }
   
   
-  public Node tree() throws Exception {
-	    return m_clusters[0];
+  // efficient version
+  public List<Set<Integer>> listClusters(int support)  {
+	  List<Set<Integer>> clist=new ArrayList<Set<Integer>>();
+	 Set<Integer> allLeaves = getAllLeaves(m_clusters[0],clist, support);
+	  
+	  return clist;
+	  
 	  }
+  
+  public Set<Integer> getAllLeaves(Node node,List<Set<Integer>> recorder, int support)
+  {
+	  Set<Integer> Leaves=new HashSet<Integer>();
+	  if(node.m_left==null)
+	  {
+		  Leaves.add(node.m_iLeftInstance);
+		  if(node.m_right==null)
+		  {
+			  Leaves.add(node.m_iRightInstance);
+		  }
+		  else
+		  {
+			  Set<Integer> subtree = getAllLeaves(node.m_right,recorder,support);
+			  if(subtree.size()>support)
+			  {
+				  if(recorder!=null)
+				  {
+					  recorder.add(subtree);
+				  }
+			  }
+			  Leaves.addAll(subtree);
+		  }
+	  }
+	  else
+	  {
+		  Set<Integer> subtree2 = getAllLeaves(node.m_left,recorder,support);
+		  if(subtree2.size()>support)
+		  {
+			  if(recorder!=null)
+			  {
+				  recorder.add(subtree2);
+			  }
+		  }
+		  Leaves.addAll(subtree2);
+		  if(node.m_right==null)
+		  {
+			  Leaves.add(node.m_iRightInstance);
+		  }
+		  else
+		  {
+			  Set<Integer> subtree = getAllLeaves(node.m_right,recorder,support);
+			  if(subtree.size()>support)
+			  {
+				  if(recorder!=null)
+				  {
+					  recorder.add(subtree);
+				  }
+			  }
+			  Leaves.addAll(subtree);
+		  }
+	  }
+	  return Leaves;
+  }
   
   
   
