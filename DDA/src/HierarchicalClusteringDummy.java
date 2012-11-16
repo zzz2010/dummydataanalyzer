@@ -16,13 +16,15 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 	@Override
 	public List<DummyFinding> DigKnowledge(List<Instances> datasets) {
 		// TODO Auto-generated method stub
+		 List<DummyFinding> findings=new ArrayList<DummyFinding>();
 		for (int i = 0; i < datasets.size()-1; i++) {
 			for (int j = i+1; j < datasets.size(); j++)
 			{
 				List<DummyFinding> result=processTwoTables(datasets.get(i),datasets.get(j));
+				findings.addAll(result);
 			}
 		}
-		return null;
+		return findings;
 	}
 
 	public List<DummyFinding> processTwoTables(Instances table1,Instances table2)
@@ -57,15 +59,22 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 		filter.setAttributeIndicesArray(new int[]{0});
 		clustering.setPrintNewick(true);
 		FilteredClusterer filteredCluster=new FilteredClusterer();
-		filteredCluster.setClusterer(clustering);
+		
 		filteredCluster.setFilter(filter);
 		
 		
 		//build cluster
 		try {
+			for (int i = 0; i < distFuns.size(); i++) {
+				clustering.setDistanceFunction(distFuns.get(i));
+				for (int j = 0; j<LinkTypes.size(); j++) {
+					clustering.setLinkType(LinkTypes.get(j));
+					filteredCluster.setClusterer(clustering);
+					filteredCluster.buildClusterer(first);
+					String clusterTree=filteredCluster.clustererTipText();
+				}
+			}
 			
-			filteredCluster.buildClusterer(first);
-			String clusterTree=filteredCluster.clustererTipText();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
