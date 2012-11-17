@@ -55,7 +55,7 @@ public class DummyFinding implements Comparable<DummyFinding>{
 					Double.compare(o.pvalue, pvalue);//smaller the better
 			}
 			else
-				Integer.compare(support, o.support);
+				Double.compare(support, o.support);
 		}
 		return Double.compare(this.confidence,o.confidence);
 	}
