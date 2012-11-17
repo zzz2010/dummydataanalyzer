@@ -1124,6 +1124,8 @@ public class HierarchicalClusterer extends AbstractClusterer implements OptionHa
   public Set<Integer> getAllLeaves(Node node,List<Set<Integer>> recorder, int support)
   {
 	  Set<Integer> Leaves=new HashSet<Integer>();
+	  if(node==null)
+		  return Leaves;
 	  if(node.m_left==null)
 	  {
 		  Leaves.add(node.m_iLeftInstance);

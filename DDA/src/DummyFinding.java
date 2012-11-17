@@ -1,7 +1,7 @@
 import java.util.HashSet;
 
 
-public class DummyFinding {
+public class DummyFinding implements Comparable<DummyFinding>{
 	
 	int support;
 	double confidence;
@@ -28,6 +28,39 @@ public class DummyFinding {
 		return ret;
 	}
 
+	@Override
+	public int compareTo(DummyFinding o) {
+		// TODO Auto-generated method stub
+		if(this.confidence==o.confidence)
+		{
+			if(this.support==o.support)
+			{
+				if(pvalue==o.pvalue)
+				{
+					if(isCrossTable==true&&o.isCrossTable==false)
+					{
+						return 1;
+					}
+					else if (isCrossTable==false&&o.isCrossTable==true)
+					{
+						return -1;
+					}
+					else
+					{
+						return 0;
+					}
+						
+				}
+				else
+					Double.compare(o.pvalue, pvalue);//smaller the better
+			}
+			else
+				Integer.compare(support, o.support);
+		}
+		return Double.compare(this.confidence,o.confidence);
+	}
+
+	
 	
 	
 }

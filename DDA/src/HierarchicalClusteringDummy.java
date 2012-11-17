@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,19 +29,21 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 			{
 				List<DummyFinding> result=processTwoTables(datasets.get(i),datasets.get(j));
 				findings.addAll(result);
+				result=processTwoTables(datasets.get(j),datasets.get(i));
+				findings.addAll(result);
 			}
 		}
 		return findings;
 	}
 
-	public List<DummyFinding> processTwoTables(Instances table1,Instances table2)
+	public List<DummyFinding> processTwoTables(Instances feature,Instances targetTable)
 	{
 		
 		List<DummyFinding> result=new ArrayList<DummyFinding>();
 		//get common id
 		List<Instances> inputData=new ArrayList<Instances>();
-		inputData.add(table1);
-		inputData.add(table2);
+		inputData.add(feature);
+		inputData.add(targetTable);
 		List<Instances> filterData=common.getCommonInstances(inputData);
 		Instances first=filterData.get(0);
 		Instances second=filterData.get(1);
@@ -68,6 +72,7 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 		filteredCluster.setFilter(filter);
 		
 		
+		HashMap<String, DummyFinding> BestResult=new HashMap<String, DummyFinding>();
 		//build cluster
 		try {
 			for (int i = 0; i < distFuns.size(); i++) {
@@ -77,7 +82,22 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 					filteredCluster.setClusterer(clustering);
 					filteredCluster.buildClusterer(first);
 					  List<Set<Integer>> clusterTree = clustering.listClusters(Criteria.minSupport);
-					System.out.println(clusterTree);
+				      for (Set<Integer> set : clusterTree) {
+						HashSet<String> IDs = common.index2IDString(first, set);
+						List<DummyFinding> findings = ClusteringPredict(IDs,second);
+						for (DummyFinding dummyFinding : findings) {
+							dummyFinding.PredictTarget=targetTable.relationName();
+							dummyFinding.description=feature.relationName()+"|"+LinkTypes.get(j).getClass().getName()+","+distFuns.get(i).getClass().getName();
+							if(BestResult.containsKey(dummyFinding.PredictTarget))
+							{
+								DummyFinding currentBest=BestResult.get(dummyFinding.PredictTarget);
+								if(currentBest.compareTo(dummyFinding)<0)
+								{
+									BestResult.put(dummyFinding.PredictTarget,dummyFinding);
+								}
+							}
+						}
+					}
 				}
 			}
 			
@@ -85,6 +105,9 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		result.addAll(BestResult.values());
+		
 		return result;
 	}
 	
@@ -121,7 +144,7 @@ public class HierarchicalClusteringDummy implements AbstractDummy {
 						finding.support=IDs.size();
 						finding.FeatureName.addAll(IDs);
 						finding.DummyName=this.getClass().getName();
-						finding.description="J48 Classification";
+						finding.description="";
 						result.add(finding);
 					}
 			} catch (Exception e) {

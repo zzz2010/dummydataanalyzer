@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +16,14 @@ import weka.filters.unsupervised.instance.RemoveWithValues;
 public class common {
 
 	static String outputDir="output/";
-	
+	public static HashSet<String> index2IDString(Instances data,Collection<Integer> index)
+	{
+		HashSet<String> IdStrings=new HashSet<String>();
+		for (Integer i : index) {
+			IdStrings.add(data.instance(i).stringValue(0));
+		}
+		return IdStrings;
+	}
 	
 	//get instance with common IDs
 	public static List<Instances> getCommonInstances(List<Instances> datasets)
