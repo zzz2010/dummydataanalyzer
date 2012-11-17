@@ -20,6 +20,7 @@ public class ShuffleVerifier extends DummyWrapper {
 		List<DummyFinding> posFindings=workerDummy.DigKnowledge(datasets);
 		List<DummyFinding> negFindings=new ArrayList<DummyFinding>();
 		int shuffleRound=10;
+		if(posFindings.size()>0)// if no finding, then no false positive
 		for (int i = 0; i < shuffleRound; i++) {
 			List<Instances> shuffledData = common.ShuffleValues(datasets);
 			List<DummyFinding> temp = workerDummy.DigKnowledge(shuffledData);

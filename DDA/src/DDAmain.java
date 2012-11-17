@@ -10,6 +10,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import bioweka.core.converters.sequence.FastaSequenceLoader;
+
 import weka.clusterers.HierarchicalClusterer;
 import weka.core.Instances;
 import weka.filters.Filter;
@@ -62,6 +64,14 @@ public class DDAmain {
 				remove.setInputFormat(dataset);
 				TableData.add(Filter.useFilter(dataset,remove));
 				TableNames.add(fileList[i]);
+			}
+			if(filename.endsWith("fasta")||filename.endsWith("fa"))
+			{
+				FastaSequenceLoader loader=new FastaSequenceLoader();
+				loader.setFile(new File(filename));
+				  Instances inst = loader.getDataSet();
+				  TableData.add(inst);
+				  TableNames.add(fileList[i]);
 			}
 		}
 		
