@@ -1,0 +1,1 @@
+DummyDataAnalyzer, automatically tell you what is significant correlation among your data, and how the grouping of your records can indicate some independent measurement.
